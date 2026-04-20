@@ -1,0 +1,45 @@
+name: cross-cloud-worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: install deps
+        run: pip install -r requirements.txt
+
+      - name: aws oidc auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: gcp wif auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: execute simulation
+        env:
+          CORRELATION_ID: ${{ github.run_id }}
+          SOURCE_BUCKET: ${{ vars.AWS_BUCKET }}
+          SOURCE_KEY: "incoming/sample.txt"
+          DEST_BUCKET: ${{ vars.GCP_BUCKET }}
+          DEST_KEY: "processed/sample.txt"
+        run: python src/worker.py
