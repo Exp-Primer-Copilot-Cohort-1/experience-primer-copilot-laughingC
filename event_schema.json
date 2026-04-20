@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CrossCloudTransferEvent",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1.0", "1.1"]
+    },
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string", "enum": ["aws", "gcp"] },
+        "bucket": { "type": "string" },
+        "key": { "type": "string" }
+      },
+      "required": ["provider", "bucket", "key"]
+    },
+    "destination": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string", "enum": ["aws", "gcp"] },
+        "bucket": { "type": "string" },
+        "key": { "type": "string" }
+      },
+      "required": ["provider", "bucket", "key"]
+    }
+  },
+  "required": ["schemaVersion", "eventId", "timestamp", "correlationId", "source", "destination"]
+}
